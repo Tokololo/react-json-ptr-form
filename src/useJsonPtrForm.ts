@@ -165,11 +165,11 @@ export interface IJsonPtrFormControlRender<V extends string | IPrtFormError = st
     valid: (ptr?: string) => boolean,
     value: <W>(ptr?: string, clean?: CleanOptions) => W | undefined,
     setValue: (val: any, ptr?: string) => void,
-    removeValue: (ptr?: string) => void;
-    resetValue: (value: any, ptr?: string) => void
-    error: (ptr?: string) => V | undefined;
-    touched: (ptr?: string) => boolean;
-    setTouched: (ptr?: string) => void;
+    removeValue: (ptr?: string) => void,
+    resetValue: (value: any, ptr?: string) => void,
+    error: (ptr?: string) => V | undefined,
+    touched: (ptr?: string) => boolean,
+    setTouched: (ptr?: string) => void,
     dirty: (ptr?: string) => boolean
 }
 
@@ -321,7 +321,7 @@ export const useJsonPtrForm = <
             sub.unsubscribe();
         }
 
-    }, [...deps]);
+    }, [defaultValue, schemaValidator?.schema, schemaValidator?.validator, postValidator, options, ...deps]);
 
     /**
      * Remove a value via ptr.
