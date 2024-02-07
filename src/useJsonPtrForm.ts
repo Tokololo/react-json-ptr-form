@@ -1,4 +1,4 @@
-import { useStore } from "@tokololo/react-json-ptr-store";
+import { Store } from "@tokololo/json-ptr-store";
 import { CleanOptions } from "clean-deep";
 import { DependencyList, useCallback, useEffect, useMemo, useState } from "react";
 import { combineLatest, from, of, switchMap, tap } from "rxjs";
@@ -267,7 +267,7 @@ export const useJsonPtrForm = <
     },
     deps: DependencyList = []) => {
 
-    const formStore = useStore();
+    const formStore = new Store();
     const [, setRender] = useState(() => ({}));
     const [values, setValues] = useState<T>({} as any);
     const [errors, setErrors] = useState<{ [path: string]: IPrtFormError }>({});
