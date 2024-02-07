@@ -1,4 +1,4 @@
-import { Store } from "@tokololo/json-ptr-store";
+import { IStoreFlags, Store, strictnessType } from "@tokololo/json-ptr-store";
 import { CleanOptions } from "clean-deep";
 import { DependencyList, useCallback, useEffect, useMemo, useState } from "react";
 import { combineLatest, from, of, switchMap, tap } from "rxjs";
@@ -236,6 +236,22 @@ export const JsonPtrFormControl = <T, V extends string | IPrtFormError = string>
 
 }
 
+const useStore = (
+    initial?: { [prop: string]: any },
+    flags?: IStoreFlags,
+    comparer?: <Stricktness extends string = strictnessType>(obj1: any, obj2: any, strictness: Stricktness) => boolean
+) => {
+
+    const store = useMemo(() => new Store(initial, flags, comparer), []);
+
+    useEffect(() => {
+        return () => store?.destroy();
+    }, []);
+
+    return store;
+
+}
+
 /**
  * JsonPtrForm hook
  * @param defaultValue The default value of the store. On change the form resets.
@@ -267,7 +283,7 @@ export const useJsonPtrForm = <
     },
     deps: DependencyList = []) => {
 
-    const formStore = new Store();
+    const formStore = useStore();
     const [, setRender] = useState(() => ({}));
     const [values, setValues] = useState<T>({} as any);
     const [errors, setErrors] = useState<{ [path: string]: IPrtFormError }>({});
