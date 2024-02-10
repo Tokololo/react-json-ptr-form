@@ -1,6 +1,6 @@
 {
     "name": "@tokololo/react-json-ptr-form",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "A json pointer and rxjs form manager for React",
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",

@@ -363,7 +363,7 @@ export const useJsonPtrForm = <
         if (touchedObj !== touched)
             setTouched(touchedObj);
 
-        formStore.set([{ ptr, value: value === '' ? undefined : value }]);
+        formStore.set([{ ptr, value }]);
 
     }
 
