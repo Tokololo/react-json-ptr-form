@@ -1,27 +1,43 @@
 
 # What is react-json-ptr-form?
-React-json-ptr-form is a react form manager that uses react-json-ptr-store  to manage form state. Form state is set and retrieved via json pointers. It is intuitive, minimalist yet powerful.
-> Please look at documentation for [json-ptr-store](https://github.com/Tokololo/json-ptr-store)  
+React-json-ptr-form is a react form manager that uses [json-ptr-store](https://www.npmjs.com/package/@tokololo/json-ptr-store) to manage form state. Form state is set and retrieved via json pointers. It is intuitive, minimalist yet powerful.
+> For the most up to date documentation please refer to the [repo](https://github.com/Tokololo/react-json-ptr-form#readme).  
+> Please also refer to the documentation for [json-ptr-store](https://www.npmjs.com/package/@tokololo/json-ptr-store).
 # How to use
 ## Creating the form manager
 The form manager has the following interface:
 
-    const { value, setValue, error, touched, setTouched, removeValue, valid, values, form, dirty, errors, resetValue } = useJsonPtrForm<T, ISchema, IPrtFormError, IPrtFormError>(
-    defaultValues: Partial<T> | undefined,
-    schemaValidator?: {
+    const { 
+      value, 
+      setValue, 
+      error, 
+      touched, 
+      setTouched, 
+      removeValue, 
+      valid, 
+      values, 
+      form, 
+      dirty, 
+      errors, 
+      resetValue 
+    } = useJsonPtrForm<T, ISchema, IPrtFormError, IPrtFormError>(
+      defaultValues: Partial<T> | undefined,
+      schemaValidator?: {
 	    schema: ISchema,
 	    validator: IJsonPrtFormValidator<ISchema, IPrtFormError>
-    },
-    postValidator?: (values: T, errors: { [path:  string]: IPrtFormError }) => Promise<{ [path:  string]: IPrtFormError }>,
-    options?: {
+      },
+      postValidator?: (values: T, errors: { [path:  string]: IPrtFormError }) => Promise<{ [path:  string]: IPrtFormError }>,
+      options?: {
 	    async?: boolean,
 		validatePreClean?: CleanOptions,
-	    fullError: boolean	    
-    },
-    deps: DependencyList = []);
+	    fullError?: boolean	    
+      },
+      deps: DependencyList = []);
 The internal dependency list is set as follows:
- `[defaultValue, schemaValidator?.schema, schemaValidator?.validator, postValidator, options, ...deps]` 
- so **please take care to provide static instances between renders**, ie by wrapping these values in **useMemo()**. Refer to the full example at the end.
+
+    [defaultValue, schemaValidator?.schema, schemaValidator?.validator, postValidator, options, ...deps]
+
+so please take care to provide static instances between renders, ie by wrapping these values in useMemo(). Refer to the full example at the end.
  
 The parameters are as follows:
 ### defaultValues
@@ -77,7 +93,7 @@ You can also instantiate it's singleton instance somewhere else in your app befo
 
 ### postValidator
 
-    postValidator?: (values: T, errors: { [path:  string]: V }) => Promise<{ [path:  string]: V }>
+    postValidator?: (values: T, errors: { [path: string]: V }) => Promise<{ [path: string]: V }>
 The post validator is used for the rare cases in which the schema validator is unable to provide the complex validation needed. It receives the values to be validated and the errors from the schema validator and must return the complete error object. You can also use it as a quick and dirty validator for small forms if you want. The important take-away is that the return error object is indexed by ptr strings.
 ### options
 Options control the behavior of the form manager. Currenty there are three properties:
@@ -157,7 +173,7 @@ It returns the following interface:
     interface IJsonPtrFormControlRender<V extends string | IPrtFormError = string> {
     	valid: (ptr?: string) => boolean,
     	value: <W>(ptr?: string, clean?: CleanOptions) => W | undefined,
-    	setValue: (val: any, ptr?: string) =>  void,
+    	setValue: (val: any, ptr?: string) => void,
     	removeValue: (ptr?: string) => void,
     	resetValue: (value: any, ptr?: string) => void,
     	error: (ptr?: string) => V | undefined,
@@ -166,20 +182,20 @@ It returns the following interface:
     	dirty: (ptr?: string) => boolean
     }
 
-It mirrors the return value of useJsonPtrForm with the difference that the ptr parameter is optional.
+It mirrors the return value of useJsonPtrForm with the difference that the ptr parameter is optional.  
 It has the following benefits:
 
  - It takes care of async issues 
  - It is performant 
  - It provides convenience
 
-You provide it with the ptr only once and it brings many of the same functions the form manager provides but with greater convenience. Most of these functions take an optional ptr. If you do not provide it it is defaulted to the ptr set on JsonPtrFormControl yet you can still provide a ptr to access other parts of the form state.
-The functions provided by JsonPtrFormControl are scoped to JsonPtrFormControl but as explained can access other form state as well. Inside the wrapped scope of JsonPtrFormControl you should only use the functions it provides. Outside of that scope you are free to use the functions provided by useJsonPtrForm. You can for instance use it in callback code, hooks etc. which allows for a convenient way to manage your form state.
+You provide JsonPtrFormControl with the ptr only once and it brings many of the same functions useJsonPtrForm provides but with greater convenience. As stated most of these functions take an optional ptr. If you do not provide the ptr it is defaulted to the ptr set on JsonPtrFormControl yet you can still provide a ptr in order to access other parts of the form state. You are also not limited to the use of these functions and are free to use the functions useJsonPtrForm provides within the scope of JsonPtrFormControl.
+
 ## Arrays
 Rendering array form elements are extremely easy:
 
     {
-	    (value('/options') as string[])?.map((option, idx) =>
+	    value<string[]>('/options')?.map((option, idx) =>
 	    <JsonPtrFormControl
 		    key={idx}
 		    ptr={`/options/${idx}`}
@@ -188,7 +204,7 @@ Rendering array form elements are extremely easy:
 		    <ListInput
 			    label={`Option ${idx + 1}`}
 			    type='text'
-			    value={value() || ''}
+			    value={value<string>() || ''}
 			    onChange={(e) => setValue(e.target.value)}
 			    onBlur={() => setTouched()}
 			    onInputClear={() => setValue(undefined)}
@@ -201,12 +217,55 @@ To append an array item to the above options list you can do as follows:
     () => {
     	setValue("Cheese", '/options/-');
     }
-    
+  
 To remove the 4th item in the above options array you do the following:
 
     () => {
         removeValue("/options/3");
     }
+Please note the section on undefined in the [json-ptr-store](https://www.npmjs.com/package/@tokololo/json-ptr-store)  documentation.  To sum that up, when adding elements to your form data (array elements or otherwise) please make sure that the form data where you are rooting the inserted data are either completely unset or has a value, ie it must not explicitly be set to undefined; or if it is set as undefined then you must ensure that the inserted data is defined, ie. given the below state of the form data:
+
+    {
+        myArray: undefined,
+        someOtherData: {}
+    }
+
+the following insertion will fail:
+
+    setValue(undefined, '/myArray/-');
+Hence, either the form data must be predefined as:
+
+    {
+        myArray: [], // note myArray is defined        
+        someOtherData: {}
+    }
+    
+or myArray can be completely unset as
+
+    {    
+	    // note there is no myArray defined at all
+        someOtherData: {}
+    }
+
+or the insertion must be defined:
+
+    setValue({ id: 1, text: undefined }, '/myArray/-'); // setting a defined value instead of undefined
+## Submitting a form
+You are in complete control of how to submit your form. A practical example is as follows:
+
+    const { valid, form, values, setTouched } = useJsonPtrForm(defaultValues, useValidator(getSchema));
+    
+    const submit = () => {  
+      if (!valid()) {
+        setTouched();
+        return;
+      } 
+      submitForm(values); 
+    }
+ 
+    <Button onClick={submit}>Submit</Button>
+
+ 
 ## Complete example
 
     
@@ -242,7 +301,7 @@ To remove the 4th item in the above options array you do the following:
     } 
     
     const getDefaultValue = (article?: IArticle): IArticle => { 
-	    return  article ?
+	    return article ?
 	    {
 		    ...article
 	    } :
@@ -287,7 +346,7 @@ To remove the 4th item in the above options array you do the following:
 				    <NavRight>
 					    <SubmitLink
 						    valid={valid()}
-						    on_click={() => setTouched()} />
+						    onClick={() => setTouched()} />
 				    </NavRight>
 			    </Navbar>	    
 		    <List>
@@ -328,7 +387,7 @@ To remove the 4th item in the above options array you do the following:
 					    label='Footer'
 					    type='textarea'
 					    resizable
-					    value={value() || ''}
+					    value={value<string>() || ''}
 					    onChange={(e) => setValue(e.target.value)}
 					    onBlur={() => setTouched()}
 					    onInputClear={() => setValue(undefined)}
