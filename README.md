@@ -1,10 +1,11 @@
 
 # What is react-json-ptr-form?
-React-json-ptr-form is a react form manager that uses [json-ptr-store](https://www.npmjs.com/package/@tokololo/json-ptr-store) to manage form state. Form state is set and retrieved via json pointers. It is intuitive, minimalist yet powerful.
-> For the most up to date documentation please refer to the [repo](https://github.com/Tokololo/react-json-ptr-form#readme).  
-> Please also refer to the documentation for [json-ptr-store](https://www.npmjs.com/package/@tokololo/json-ptr-store).
+React-json-ptr-form is a [rxjs](https://www.npmjs.com/package/rxjs) react form manager that uses [json-ptr-store](https://www.npmjs.com/package/@tokololo/json-ptr-store) to manage form state. Form state is set and retrieved via [json pointers](https://datatracker.ietf.org/doc/html/rfc6901). It is intuitive, minimalist yet powerful.
+> Please look at documentation for [json-ptr-store](https://github.com/Tokololo/json-ptr-store#readme).  
+> For the latest documentation please consult the repo  [readme](https://github.com/Tokololo/react-json-ptr-form#readme)  
+> If you like react-json-ptr-form also have a look at [react-json-ptr-store](https://github.com/Tokololo/react-json-ptr-store#readme)
 # How to use
-## Creating the form manager
+## useJsonPtrForm
 The form manager has the following interface:
 
     const { 
