@@ -14,6 +14,7 @@ The form manager has the following interface:
       setValue, 
       removeValue, 
       resetValue,   
+      rerefValue,  
       error, 
       errors, 
       touched, 
@@ -125,7 +126,6 @@ You can reset the form manager by adding a state variable to the deps dependency
 ## useJsonPtrForm return value
 useJsonPtrForm returns an object with properties to mostly functions that you use to access the form manager functionality.
 ### value
-
     value: <T>(ptr: string, clean?: CleanOptions) => T | undefined
 Returns the form value at ptr. To clean the value from undefined properties etc specify clean options.
 ### values
@@ -140,6 +140,9 @@ Use this to remove a value at a ptr.
 ### resetValue
     resetValue: (value: any, ptr: string) => void
 Use this to either set a new value at a ptr, set the default value (as per the defaultValue provided to the store) or as undefined. In addition it clears all touched flags for the value at the ptr as well as for any child values rooted further down the pointer.
+### rerefValue
+    rerefValue: (ptr: string) => void
+Use this to set a new reference for an array or object literal at the ptr in your form state. If the type of the value is not an array of object literal it does nothing.
 ### error
     error: (ptr: string) => string | IPrtFormError | undefined
 Retrieve an individual error for a ptr. By default it returns the error message but you can return the complete error object via the options setting **fullError**
@@ -159,17 +162,17 @@ You call this function with a ptr to a form value. If you leave ptr empty it wil
     dirty: (ptr?: string) => boolean;
 Call this to determine if the field at the provided ptr is dirty. If you omit prt you get the dirty state of the form as a whole. Passing it a ptr to a leaf node in the form state is fast and passing it a prt to a root node of the form state is slower.
 ### form
-
     form: {
-      valid: (ptr?: string) => boolean,
-      value: <W>(ptr?: string, clean?: CleanOptions) => W | undefined,
-      setValue: (val: any, ptr?: string) => void,
-      removeValue: (ptr?: string) => void,
-      resetValue: (value: any, ptr?: string) => void,
-      error: (ptr?: string) => V | undefined,
-      touched: (ptr?: string) => boolean,
-      setTouched: (ptr?: string) => void,
-      dirty: (ptr?: string) => boolean
+      valid: (ptr?: string) => boolean,  
+      value: <W>(ptr?: string, clean?: CleanOptions) => W | undefined,  
+      setValue: (val: any, ptr?: string) => void,  
+      removeValue: (ptr?: string) => void,  
+      resetValue: (value: any, ptr?: string) => void,  
+      rerefValue: (ptr?: string) => void,  
+      error: (ptr?: string) => V | undefined,  
+      touched: (ptr?: string) => boolean,  
+      setTouched: (ptr?: string) => void,  
+      dirty: (ptr?: string) => boolean  
     }
 Used with JsonPtrFormControl.
 ## JsonPtrFormControl
@@ -203,7 +206,8 @@ It returns the following interface:
       value: <W>(ptr?: string, clean?: CleanOptions) => W | undefined,
       setValue: (val: any, ptr?: string) => void,
       removeValue: (ptr?: string) => void,
-      resetValue: (value: any, ptr?: string) => void,
+      resetValue: (value: any, ptr?: string) => void,  
+      rerefValue: (ptr?: string) => void,  
       error: (ptr?: string) => V | undefined,
       touched: (ptr?: string) => boolean,
       setTouched: (ptr?: string) => void,
@@ -250,6 +254,12 @@ To remove the 4th item in the above options array you do the following:
 
     () => {
         removeValue("/options/3");  
+    }
+If for some reason you need to provide a new array reference you can do as follows:
+
+    () => {  
+        setValue("Cheese", '/options/-');  
+        rerefValue('/options');
     }
 
 ## Submit a form
@@ -400,5 +410,7 @@ You are in complete control of how to submit your form. A practical example is a
 		</Page>);
     };
 # Change Log
+## version 1.0.8
+ - Add rerefValue to JsonPtrFormControl and useJsonPtrForm
 ## version 1.0.7
  - Update json-ptr-store to version 1.1.5 which removed undefined set limitation

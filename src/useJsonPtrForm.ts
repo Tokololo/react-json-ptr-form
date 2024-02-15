@@ -20,6 +20,7 @@ interface IJsonPtrFormResult<T, V extends string | IPrtFormError = string> {
     setValue: (value: any, ptr: string) => void;
     removeValue: (ptr: string) => void;
     resetValue: (value: any, ptr: string) => void;
+    rerefValue: (ptr: string) => void;
     errors: { [path: string]: V; };
     error: (ptr: string) => V | undefined;
     touched: (ptr: string) => boolean;
@@ -28,7 +29,7 @@ interface IJsonPtrFormResult<T, V extends string | IPrtFormError = string> {
 }
 
 /**
- * Remove a ptr entries children from an object literal indexed by ptrs.
+ * Remove a ptr entries' children from an object literal indexed by ptrs.
  * @param obj 
  * @param ptr 
  * @returns 
@@ -168,6 +169,7 @@ export interface IJsonPtrFormControlRender<V extends string | IPrtFormError = st
     removeValue: (ptr?: string) => void,
     resetValue: (value: any, ptr?: string) => void,
     error: (ptr?: string) => V | undefined,
+    rerefValue: (ptr?: string) => void,
     touched: (ptr?: string) => boolean,
     setTouched: (ptr?: string) => void,
     dirty: (ptr?: string) => boolean
@@ -228,6 +230,7 @@ export const JsonPtrFormControl = <T, V extends string | IPrtFormError = string>
         setValue: (val: any, ptr?: string) => ptr ? props.form.setValue(val, ptr) : state.updateValue(val),
         removeValue: (ptr?: string) => props.form.removeValue(ptr || props.ptr),
         resetValue: (value: any, ptr?: string) => props.form.resetValue(value, ptr || props.ptr),
+        rerefValue: (ptr?: string) => props.form.rerefValue(ptr || props.ptr),
         touched: (ptr?: string) => props.form.touched(ptr || props.ptr),
         setTouched: (ptr?: string) => props.form.setTouched(ptr || props.ptr),
         error: (ptr?: string) => props.form.error(ptr || props.ptr),
@@ -384,6 +387,18 @@ export const useJsonPtrForm = <
     }
 
     /**
+     * Provide a new reference for an array or object literal
+     * @param ptr The ptr to the value
+     */
+    const rerefValue = (ptr: string) => {
+        const value = formStore.slice(ptr);
+        if (isArray(value))
+            formStore.set([{ ptr, value: [...value] }]);
+        else if (isPlainObject(value))
+            formStore.set([{ ptr, value: { ...value } }]);
+    }  
+
+    /**
      * Sets touch ptrs for a ptr.
      * If no ptr is provided sets touch ptrs for all ptrs.
      * @param ptr 
@@ -417,7 +432,8 @@ export const useJsonPtrForm = <
         touched: (ptr: string) => !!touched[ptr],
         setTouched: setTouchedFn,
         dirty: (ptr?: string) => !deepEqual(formStore.slice(ptr || '/'), ptrGet(defaultValue, ptr || '/')),
-        resetValue
+        resetValue,
+        rerefValue
     }
 
     res.form = res;
