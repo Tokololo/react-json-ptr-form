@@ -261,6 +261,15 @@ If for some reason you need to provide a new array reference you can do as follo
         setValue("Cheese", '/options/-');  
         rerefValue('/options');
     }
+or if you prefer to save a render cycle you can do it manually: 
+
+    () => {  
+        const options = value<string[]>('/options') || [];
+        setValue([...options, "Cheese"], '/options'); 
+    }
+Why would you want to provide a new reference?
+
+In the above `setValue("Cheese", '/options/-')` you appended a value to an array. If the array already existed no new reference is provided. The form will still rerender with the new correct values but dependent form controls might not render correctly. Let's imagine you have a fancy select list that internally has a use hook with a dependency list for its options and you pass `value('/options')` to it. If you `setValue("Cheese", '/options/-')` it will not update it's internal state as its dependency list detected no change.
 
 ## Submit a form
 You are in complete control of how to submit your form. A practical example is as follows:
@@ -268,11 +277,10 @@ You are in complete control of how to submit your form. A practical example is a
     const { valid, form, values, setTouched } = useJsonPtrForm(defaultValues, useValidator(getSchema));
     
     const submit = () => {  
-      if (!valid()) {
+      if (!valid()) 
         setTouched();
-        return;
-      } 
-      submitForm(values); 
+      else  
+        submitForm(values); 
     }
  
     <Button onClick={submit}>Submit</Button>
