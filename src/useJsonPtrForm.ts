@@ -409,7 +409,7 @@ export const useJsonPtrForm = <
     const res: any = {
         valid: (ptr?: string) => ptr ? !errors[ptr] : !Object.keys(errors).length,
         values,
-        value: <T>(ptr: string, clean?: CleanOptions) => removeDeepUndefined(formStore.slice(ptr) as T, clean),
+        value: <T>(ptr: string, clean?: CleanOptions) => removeDeepUndefined<T | undefined>(formStore.slice(ptr) as T, clean),
         setValue,
         removeValue,
         errors,
