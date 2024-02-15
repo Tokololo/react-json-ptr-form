@@ -243,13 +243,13 @@ Rendering array form elements are extremely easy:
 To append an array item to the above options list you can do as follows:
 
     () => {
-    	setValue("Cheese", '/options/-');
+        setValue("Cheese", '/options/-');  
     }
   
 To remove the 4th item in the above options array you do the following:
 
     () => {
-        removeValue("/options/3");
+        removeValue("/options/3");  
     }
 
 ## Submit a form
@@ -399,3 +399,6 @@ You are in complete control of how to submit your form. A practical example is a
 		    </List>
 		</Page>);
     };
+# Change Log
+## version 1.0.7
+ - Update json-ptr-store to version 1.1.5 which removed undefined set limitation
