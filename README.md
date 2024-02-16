@@ -93,13 +93,10 @@ the error object might look like this:
 react-json-ptr-form comes with one predefined validator based on [ajv](https://ajv.js.org/) that uses [json schema](https://json-schema.org/) validation: 
 
     const validator = useAjvValidator();
+This will either create the singleton instance or return it if it has already been created. You can also create it outside of your React functional code which allows you to add [auxiliary schemas](https://cswr.github.io/JsonSchema/spec/definitions_references/):
 
-You can also instantiate it's singleton instance somewhere else in your app before use:
+    createAjv([auxSchema1, auxSchema2]);
 
-    createAjv([schemaDefinition1, schemaDefinition2]);
-    ...
-    const validator = useAjvValidator();
-Please note that with json schema validation you can create definitions for you custom types and place them in a separate schema to you form schemas. Your form schemas can then reference these predefined definitions thus allowing for a great amount of re-use. This is also great if you have a node backend server in which case you can easily share schemas.
 
 ### postValidator
 
