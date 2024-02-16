@@ -347,7 +347,10 @@ You are in complete control of how to submit your form. A practical example is a
 	        header: 'my header' 
 	      }, 
 	      title: 'Hello' 
-	    }), []);  
+	    }), []);
+	  const submit = () => {
+	    // send to backend
+	  }  
 	    
 	  const { setValue, setTouched, valid, values, form, dirty, errors } = useJsonPtrForm<IArticle, IAjvSchema, IAjvError, IAjvError>(
 	    defaultValues,
@@ -366,7 +369,12 @@ You are in complete control of how to submit your form. A practical example is a
 	        <NavRight>
 	          <SubmitLink
 	            valid={valid()}
-	            onClick={() => setTouched()} />
+	            onClick={() => {
+	              if (valid())
+	                submit();
+	              else
+	                setTouched();
+	            } />
 	        </NavRight>
 	      </Navbar>	    
 	      <List>
@@ -383,7 +391,7 @@ You are in complete control of how to submit your form. A practical example is a
 	              onInputClear={() => setValue(undefined)}
 	              errorMessage={error()?.message}
 	              errorMessageForce={touched()}
-			    />} />	    
+	        />} />	    
 	        <JsonPtrFormControl
 	          ptr='/body/header'
 	          form={form}
@@ -396,7 +404,7 @@ You are in complete control of how to submit your form. A practical example is a
 	              onChange={(e) => setValue(e.target.value)}
 	              onBlur={() => setTouched()}
 	              onInputClear={() => setValue(undefined)}
-	              errorMessage={error()?.keyword}
+	              errorMessage={error()?.message}
 	              errorMessageForce={touched()}
 	        />} />	    
 	        <JsonPtrFormControl
