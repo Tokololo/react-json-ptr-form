@@ -30,9 +30,9 @@ The form manager has the following interface:
       },
       postValidator?: (values: T, errors: { [path:  string]: IPrtFormError }) => Promise<{ [path:  string]: IPrtFormError }>,
       options?: {
-	    async?: boolean,
-		validatePreClean?: CleanOptions,
-	    fullError?: boolean	    
+	    async?: boolean,  
+	    validatePreClean?: CleanOptions,  
+	    fullError?: boolean  
       },
       deps: DependencyList = []);
 The internal dependency list is set as follows:
@@ -261,7 +261,7 @@ If for some reason you need to provide a new array reference you can do as follo
         setValue("Cheese", '/options/-');  
         rerefValue('/options');
     }
-or if you prefer to save a render cycle you can do it manually: 
+or if you prefer to do it manually: 
 
     () => {  
         const options = value<string[]>('/options') || [];
@@ -269,7 +269,7 @@ or if you prefer to save a render cycle you can do it manually:
     }
 Why would you want to provide a new reference?
 
-In the above `setValue("Cheese", '/options/-')` you appended a value to an array. If the array already existed no new reference is provided. The form will still rerender with the new correct values but dependent form controls might not render correctly. Let's imagine you have a fancy select list that internally has a use hook with a dependency list for its options and you pass `value('/options')` to it. If you `setValue("Cheese", '/options/-')` it will not update it's internal state as its dependency list detected no change.
+In the above `setValue("Cheese", '/options/-')` you appended a value to an array. If the array already existed no new reference is provided. The form will still rerender with the new correct values but dependent form controls might not render correctly. Let's imagine you have a fancy select list that internally has a useMemo hook with a dependency list for its options and you pass `value('/options')` to it. If you `setValue("Cheese", '/options/-')` the altered array will still be passed to it but it will not rerun its useMemo hook as the dependency list detected no change.
 
 ## Submit a form
 You are in complete control of how to submit your form. A practical example is as follows:
@@ -290,132 +290,132 @@ You are in complete control of how to submit your form. A practical example is a
 
     
     const getSchema = (): IAjvSchema => { 
-	    return {
-		    tag: 'ui_test',
-		    schema: {
-			    $schema: "http://json-schema.org/draft-07/schema#",
-			    $id: "http://my-test.com/schemas/ui_test.json",
-			    type: "object",
-			    properties: {
-				    title: {type: "string" },
-				    body: {
-					    type: "object",
-					    properties: {
-						    header: { type: "string" },
-						    footer: { type: "string" }
-					    },
-					    required: ["header", "footer"]
-				    }
-			    },
-			    required: ['title', "body"]
-		    } 
-	    }
+	  return {
+	    tag: 'ui_test',
+	    schema: {
+	      $schema: "http://json-schema.org/draft-07/schema#",
+	      $id: "http://my-test.com/schemas/ui_test.json",
+	      type: "object",
+	      properties: {
+	        title: {type: "string" },
+	        body: {
+	          type: "object",
+	          properties: {
+	            header: { type: "string" },
+	            footer: { type: "string" }
+	          },
+	          required: ["header", "footer"]
+	        }
+	      },
+	      required: ['title', "body"]
+	    } 
+	  }
     }
         
     interface IArticle {
-	    title?: string,
-	    body?: {
-		    header?: string,
-		    footer?: string
-	    }
+	  title?: string,
+	  body?: {
+	    header?: string,
+	    footer?: string
+	  }
     } 
     
     const getDefaultValue = (article?: IArticle): IArticle => { 
-	    return article ?
-	    {
-		    ...article
-	    } :
-	    {
-		    title: undefined,
-		    body: {
-			    header: undefined,
-			    footer: undefined
-		    }
-	    };     
+	  return article ?
+	  {
+	    ...article
+	  } :
+	  {
+	    title: undefined,
+	    body: {
+	      header: undefined,
+	      footer: undefined
+	    }
+	  };     
     } 
     
     const TestPage = () => { 
-	    const validator = useAjvValidator();
-	    const schema = useMemo(() => getSchema(), []);
-	    const options = useMemo(() => ({
-		    fullError: true
-	    }), []);
-	    const defaultValues = useMemo(() =>  
-		    getDefaultValue({ 
-			    body: { 
-				    footer: 'my footer', 
-				    header: 'my header' 
-				}, 
-				title: 'Hello' 
-			}), []);  
+	  const validator = useAjvValidator();
+	  const schema = useMemo(() => getSchema(), []);
+	  const options = useMemo(() => ({
+	    fullError: true
+	  }), []);  
+	  const defaultValues = useMemo(() =>  
+	    getDefaultValue({ 
+	      body: { 
+	        footer: 'my footer', 
+	        header: 'my header' 
+	      }, 
+	      title: 'Hello' 
+	    }), []);  
 	    
-	    const { setValue, setTouched, valid, values, form, dirty, errors } = useJsonPtrForm<IArticle, IAjvSchema, IAjvError, IAjvError>(
+	  const { setValue, setTouched, valid, values, form, dirty, errors } = useJsonPtrForm<IArticle, IAjvSchema, IAjvError, IAjvError>(
 	    defaultValues,
 	    {
-		    schema,
-		    validator
+	      schema,
+	      validator
 	    },
 	    undefined,
 	    options);  
     
-	    return (
-		    <Page className="popup-tablet-fullscreen">
-			    <Navbar
-				    title="My Test"
-				    backLink="Back">
-				    <NavRight>
-					    <SubmitLink
-						    valid={valid()}
-						    onClick={() => setTouched()} />
-				    </NavRight>
-			    </Navbar>	    
-		    <List>
-			    <JsonPtrFormControl
-				    ptr='/title'
-				    form={form}
-				    render={({ value, setValue, error, touched, setTouched }: IJsonPtrFormControlRender<IAjvError>) =>
-				    <ListInput
-					    label='Title'
-					    type='text'
-					    value={value<string>() || ''}
-					    onChange={(e) => setValue(e.target.value)}
-					    onBlur={() => setTouched()}
-					    onInputClear={() => setValue(undefined)}
-					    errorMessage={error()?.message}
-					    errorMessageForce={touched()}
+	  return (
+	    <Page className="popup-tablet-fullscreen">
+	      <Navbar
+	        title="My Test"
+	        backLink="Back">
+	        <NavRight>
+	          <SubmitLink
+	            valid={valid()}
+	            onClick={() => setTouched()} />
+	        </NavRight>
+	      </Navbar>	    
+	      <List>
+	        <JsonPtrFormControl
+	          ptr='/title'
+	          form={form}
+	          render={({ value, setValue, error, touched, setTouched }: IJsonPtrFormControlRender<IAjvError>) =>
+	            <ListInput
+	              label='Title'
+	              type='text'
+	              value={value<string>() || ''}
+	              onChange={(e) => setValue(e.target.value)}
+	              onBlur={() => setTouched()}
+	              onInputClear={() => setValue(undefined)}
+	              errorMessage={error()?.message}
+	              errorMessageForce={touched()}
 			    />} />	    
-			    <JsonPtrFormControl
-				    ptr='/body/header'
-				    form={form}
-				    render={({ value, setValue, error, touched, setTouched }) =>
-				    <ListInput
-					    label='Header'
-					    type='textarea'
-					    resizable
-					    value={value<string>() || ''}
-					    onChange={(e) => setValue(e.target.value)}
-					    onBlur={() => setTouched()}
-					    onInputClear={() => setValue(undefined)}
-					    errorMessage={error()?.keyword}
-					    errorMessageForce={touched()}
-			    />} />	    
-			    <JsonPtrFormControl
-				    ptr='/body/footer'
-				    form={form}
-				    render={({ value, setValue, error, touched, setTouched }) =>
-				    <ListInput
-					    label='Footer'
-					    type='textarea'
-					    resizable
-					    value={value<string>() || ''}
-					    onChange={(e) => setValue(e.target.value)}
-					    onBlur={() => setTouched()}
-					    onInputClear={() => setValue(undefined)}
-					    errorMessage={error()?.message}
-					    errorMessageForce={touched()}
-			    />} />
-		    </List>
-		</Page>);
+	        <JsonPtrFormControl
+	          ptr='/body/header'
+	          form={form}
+	          render={({ value, setValue, error, touched, setTouched }) =>
+	            <ListInput
+	              label='Header'
+	              type='textarea'
+	              resizable
+	              value={value<string>() || ''}
+	              onChange={(e) => setValue(e.target.value)}
+	              onBlur={() => setTouched()}
+	              onInputClear={() => setValue(undefined)}
+	              errorMessage={error()?.keyword}
+	              errorMessageForce={touched()}
+	        />} />	    
+	        <JsonPtrFormControl
+	          ptr='/body/footer'
+	          form={form}
+	          render={({ value, setValue, error, touched, setTouched }) =>
+	            <ListInput
+	              label='Footer'
+	              type='textarea'
+	              resizable
+	              value={value<string>() || ''}
+	              onChange={(e) => setValue(e.target.value)}
+	              onBlur={() => setTouched()}
+	              onInputClear={() => setValue(undefined)}
+	              errorMessage={error()?.message}
+	              errorMessageForce={touched()}
+	        />} />
+	      </List>
+	   </Page>);
     };
 # Change Log
 ## version 1.0.8
