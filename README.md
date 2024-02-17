@@ -31,8 +31,8 @@ The form manager has the following interface:
       },
       postValidator?: (
         values: T, 
-        errors: { [path:  string]: IPrtFormError[] }
-      ) => Promise<{ [path:  string]: IPrtFormError[] }>,
+        errors: { [path: string]: IPrtFormError[] }
+      ) => Promise<{ [path: string]: IPrtFormError[] }>,
       options?: {
 	    async?: boolean,  
 	    validatePreClean?: CleanOptions
@@ -387,11 +387,7 @@ You are in complete control of how to submit your form. A practical example is a
     
 	  const validator = useAjvValidator();
 	  
-	  const schema = useMemo(() => getSchema(), []);
-	  
-	  const options = useMemo(() => ({
-	    fullError: true
-	  }), []);  
+	  const schema = useMemo(() => getSchema(), []);  
 	  
 	  const defaultValues = useMemo(() =>  
 	    getDefaultValue({ 
@@ -421,14 +417,21 @@ You are in complete control of how to submit your form. A practical example is a
 	    // send to backend
 	  }  
 	    
-	  const { setValue, setTouched, valid, values, form, dirty, errors } = useJsonPtrForm<IArticle, IAjvSchema, IAjvError, IAjvError>(
+	  const { 
+	    setValue, 
+	    setTouched, 
+	    valid, 
+	    values, 
+	    form, 
+	    dirty, 
+	    errors 
+	  } = useJsonPtrForm<IArticle, IAjvSchema, IAjvError>(
 	    defaultValues,
 	    {
 	      schema,
 	      validator
 	    },
-	    postValidator,  
-	    options);  
+	    postValidator);  
     
 	  return (
 	    <Page className="popup-tablet-fullscreen">
