@@ -398,7 +398,7 @@ export const useJsonPtrForm = <
             delete _touched[ptr];
             return _touched;
         });
-        formStore.set([{ ptr, value: value || defaultValue }]);
+        formStore.set([{ ptr, value: value || cloneJson(ptrGet(defaultValue, ptr)) }]);
     }
 
     /**

@@ -167,13 +167,13 @@ Returns the form value at ptr.
 The form values object literal
 ### setValue
     setValue: (value: any, ptr: string) => void
-Call this to set a new value at the provided ptr. As it is using json pointers you can set a current value to something new or add a value at a non-existing object/array path. You don't only need to set scalar values. You can set complex objects as well, append to arrays etc. Refer to json pointer syntax.
+Call this to set a new value at the provided ptr. You can set both scalar and complex values. If the ptr path does not exist it will be created. You can append values to an array or set values at non-existing index in an array. Refer to json pointer syntax.
 ### removeValue
     removeValue: (ptr: string) => void
 Use this to remove a value at a ptr.
 ### resetValue
     resetValue: (value: any, ptr: string) => void
-Use this to either set a new value at a ptr, set the default value (as per the defaultValue provided to the store) or as undefined. In addition it clears all touched flags for the value at the ptr as well as for any child values rooted further down the pointer.
+Use this to reset the value to a default and to clear all touched flags for the value at the ptr as well as for any child values rooted further down the pointer. If the provided value is undefined it defaults to the value provided when the store was first inititalised.
 ### rerefValue
     rerefValue: (ptr: string) => void
 Use this to set a new reference for an array or object literal at the ptr in your form state. If the type of the value is not an array of object literal it does nothing.
@@ -507,8 +507,10 @@ You are in complete control of how to submit your form. A practical example is a
 	   </Page>);
     };
 # Change Log
+## version 2.0.3
+ - Fixed a bug on resetValue
 ## version 2.0.2
- - Fix the dirty flag from reporting true whilst the form is initialising
+ - Fixed the dirty flag from reporting true whilst the form is initialising
 ## version 2.0.1
  - Fixed bug where in very rare circumstances postValidator errors may be overwritten.
 ## version 2.0.0
