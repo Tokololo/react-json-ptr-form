@@ -175,7 +175,7 @@ Retrieves the first error message for a ptr. If you need all the error objects f
     errors: { [ptr: string]: IPrtFormError[]; }
 An object literal of all the error objects indexed by ptr.
 ### errorCount
-    errorCount: (ptr:  string) =>  number;
+    errorCount: (ptr: string) =>  number;
 Retrieves the total number of errors for a ptr.
 ### touched
     touched: (ptr: string) => boolean;
@@ -248,7 +248,7 @@ It is used like this:
     <JsonPtrFormControl
       ptr='/title'    
       form={form}    
-      render={({ value, setValue, error, touched, setTouched }: IJsonPtrFormControlRender<IAjvError>) =>    
+      render={({ value, setValue, error, touched, setTouched }) =>    
       <ListInput    
         label='Title'    
         type='text' 
