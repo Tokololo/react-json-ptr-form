@@ -6,30 +6,31 @@ import { IPrtFormError, IJsonPrtFormValidator, ISchema } from "./validator";
 import { cloneJson, deepEqual, objectMap, listPointers, removeDeepUndefined, ptrHas, ptrGet } from "./library";
 import { difference, isArray, isPlainObject } from "lodash";
 
-interface IJsonPtrFormControl<T, V extends string | IPrtFormError = string> {
+interface IJsonPtrFormControl<T, V extends IPrtFormError = IPrtFormError> {
     slot?: string,
     ptr: string,
     form: IJsonPtrFormResult<T, V>,
-    render: (args: IJsonPtrFormControlRender<V>) => JSX.Element
+    render: (args: IJsonPtrFormControlRender) => JSX.Element
 }
 
-interface IJsonPtrFormResult<T, V extends string | IPrtFormError = string> {
+interface IJsonPtrFormResult<T, V extends IPrtFormError = IPrtFormError> {
     valid: (ptr?: string) => boolean;
     values: T;
-    value: <W>(ptr: string, clean?: CleanOptions) => W | undefined;
+    value: <W>(ptr: string) => W | undefined;
     setValue: (value: any, ptr: string) => void;
     removeValue: (ptr: string) => void;
     resetValue: (value: any, ptr: string) => void;
     rerefValue: (ptr: string) => void;
-    errors: { [path: string]: V; };
-    error: (ptr: string) => V | undefined;
+    errors: { [ptr: string]: V[]; };
+    error: (ptr: string) => string | undefined;
+    errorCount: (ptr: string) => number,
     touched: (ptr: string) => boolean;
     setTouched: (ptr?: string) => void;
     dirty: (ptr?: string) => boolean;
 }
 
 /**
- * Remove a ptr entries' children from an object literal indexed by ptrs.
+ * Remove a ptr entries children from an object literal indexed by ptrs.
  * @param obj 
  * @param ptr 
  * @returns 
@@ -162,14 +163,15 @@ const diffPtrEntries = (
 /**
  * Interface to type JsonPtrFormControl
  */
-export interface IJsonPtrFormControlRender<V extends string | IPrtFormError = string> {
+export interface IJsonPtrFormControlRender {
     valid: (ptr?: string) => boolean,
-    value: <W>(ptr?: string, clean?: CleanOptions) => W | undefined,
+    value: <W>(ptr?: string) => W | undefined,
     setValue: (val: any, ptr?: string) => void,
     removeValue: (ptr?: string) => void,
     resetValue: (value: any, ptr?: string) => void,
-    error: (ptr?: string) => V | undefined,
     rerefValue: (ptr?: string) => void,
+    error: (ptr?: string) => string | undefined,
+    errorCount: (ptr?: string) => number,
     touched: (ptr?: string) => boolean,
     setTouched: (ptr?: string) => void,
     dirty: (ptr?: string) => boolean
@@ -216,7 +218,7 @@ const useJsonPtrFormFieldState = <T>(
  * @param props 
  * @returns 
  */
-export const JsonPtrFormControl = <T, V extends string | IPrtFormError = string>(props: IJsonPtrFormControl<T, V>) => {
+export const JsonPtrFormControl = <T, V extends IPrtFormError = IPrtFormError>(props: IJsonPtrFormControl<T, V>) => {
 
     const state = useJsonPtrFormFieldState(
         props.ptr,
@@ -226,7 +228,7 @@ export const JsonPtrFormControl = <T, V extends string | IPrtFormError = string>
 
     return props.render({
         valid: (ptr?: string) => props.form.valid(ptr || props.ptr),
-        value: <W = any>(ptr?: string, clean?: CleanOptions) => ptr ? props.form.value<W>(ptr, clean) : removeDeepUndefined(state.value as W, clean),
+        value: <W = any>(ptr?: string) => ptr ? props.form.value<W>(ptr) : state.value as W | undefined,
         setValue: (val: any, ptr?: string) => ptr ? props.form.setValue(val, ptr) : state.updateValue(val),
         removeValue: (ptr?: string) => props.form.removeValue(ptr || props.ptr),
         resetValue: (value: any, ptr?: string) => props.form.resetValue(value, ptr || props.ptr),
@@ -234,6 +236,7 @@ export const JsonPtrFormControl = <T, V extends string | IPrtFormError = string>
         touched: (ptr?: string) => props.form.touched(ptr || props.ptr),
         setTouched: (ptr?: string) => props.form.setTouched(ptr || props.ptr),
         error: (ptr?: string) => props.form.error(ptr || props.ptr),
+        errorCount: (ptr?: string) => props.form.errorCount(ptr || props.ptr),
         dirty: (ptr?: string) => props.form.dirty(ptr || props.ptr)
     });
 
@@ -267,29 +270,26 @@ const useStore = (
 export const useJsonPtrForm = <
     T extends { [prop: string]: any } = {},
     U extends ISchema = ISchema,
-    V extends IPrtFormError = IPrtFormError,
-    W extends string | IPrtFormError = string
+    V extends IPrtFormError = IPrtFormError
 >(
     defaultValue: Partial<T> | undefined,
     schemaValidator?: {
         schema: U,
-        validator: IJsonPrtFormValidator<U, V>
+        validator: IJsonPrtFormValidator<T, U, V>
     },
-    postValidator?: (values: T, errors: { [path: string]: V }) => Promise<{ [path: string]: V }>,
+    postValidator?: (values: T, errors: { [ptr: string]: V[] }) => Promise<{ [ptr: string]: V[] }>,
     options?: {
         /** When not using JsonPtrFormControls set it to async. Causes a second render. */
         async?: boolean,
         /** Do some pre cleaning on the values to be validated */
-        validatePreClean?: CleanOptions,
-        /** Return the full error. default is to return only the error message */
-        fullError?: boolean
+        validatePreClean?: CleanOptions
     },
     deps: DependencyList = []) => {
 
     const formStore = useStore();
     const [, setRender] = useState(() => ({}));
     const [values, setValues] = useState<T>({} as any);
-    const [errors, setErrors] = useState<{ [path: string]: IPrtFormError }>({});
+    const [errors, setErrors] = useState<{ [ptr: string]: IPrtFormError[] }>({});
     const [touched, setTouched] = useState<{ [ptr: string]: boolean }>({});
 
     useEffect(() => {
@@ -313,9 +313,9 @@ export const useJsonPtrForm = <
                         from(schemaValidator.validator.validateSchema(
                             schemaValidator.schema.tag,
                             options?.validatePreClean ?
-                                removeDeepUndefined(value, options.validatePreClean) :
-                                value)) :
-                        of({})
+                                removeDeepUndefined<T>(value as T, options.validatePreClean) :
+                                value as T)) :
+                        of({} as { [ptr: string]: V[] })
                 ]))
             )
             .subscribe(([value, errors]) => {
@@ -365,7 +365,6 @@ export const useJsonPtrForm = <
         const touchedObj = diffPtrEntries(ptr, formStore.slice(ptr), value, touched);
         if (touchedObj !== touched)
             setTouched(touchedObj);
-
         formStore.set([{ ptr, value }]);
 
     }
@@ -396,7 +395,7 @@ export const useJsonPtrForm = <
             formStore.set([{ ptr, value: [...value] }]);
         else if (isPlainObject(value))
             formStore.set([{ ptr, value: { ...value } }]);
-    }  
+    }
 
     /**
      * Sets touch ptrs for a ptr.
@@ -424,11 +423,12 @@ export const useJsonPtrForm = <
     const res: any = {
         valid: (ptr?: string) => ptr ? !errors[ptr] : !Object.keys(errors).length,
         values,
-        value: <T>(ptr: string, clean?: CleanOptions) => removeDeepUndefined<T | undefined>(formStore.slice(ptr) as T, clean),
+        value: <T>(ptr: string) => formStore.slice(ptr) as T | undefined,
         setValue,
         removeValue,
         errors,
-        error: (ptr: string) => options?.fullError ? errors[ptr] : errors[ptr]?.message,
+        error: (ptr: string) => errors[ptr]?.[0]?.message,
+        errorCount: (ptr: string) => errors[ptr]?.length || 0,
         touched: (ptr: string) => !!touched[ptr],
         setTouched: setTouchedFn,
         dirty: (ptr?: string) => !deepEqual(formStore.slice(ptr || '/'), ptrGet(defaultValue, ptr || '/')),
@@ -438,6 +438,6 @@ export const useJsonPtrForm = <
 
     res.form = res;
 
-    return res as IJsonPtrFormResult<T, W> & { form: IJsonPtrFormResult<T, W> };
+    return res as IJsonPtrFormResult<T, V> & { form: IJsonPtrFormResult<T, V> };
 
 }

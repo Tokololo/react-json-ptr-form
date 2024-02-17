@@ -1,6 +1,6 @@
 {
     "name": "@tokololo/react-json-ptr-form",
-    "version": "1.0.8",
+    "version": "2.0.0",
     "description": "A json pointer and rxjs form manager for React",
     "main": "./dist/cjs/index.js",
     "module": "./dist/esm/index.js",
@@ -26,6 +26,7 @@
         "typescript",
         "react",
         "form",
+        "json",
         "json-pointer",
         "json-ptr",
         "rxjs",
@@ -64,6 +65,7 @@
         "@tokololo/json-ptr-store": "^1.1.5",
         "ajv": "^8.12.0",
         "ajv-formats": "^2.1.1",
+        "ajv-errors": "^3.0.0",
         "json-pointer": "^0.6.2",
         "lodash": "^4.17.21",
         "rxjs": "^7.8.1"

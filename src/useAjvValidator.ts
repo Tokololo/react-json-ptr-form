@@ -1,7 +1,8 @@
 import { useMemo } from "react";
 import { IJsonPrtFormValidator, ISchema, IPrtFormError } from "./validator";
-import Ajv, { AnySchema, ErrorObject } from 'ajv';
+import Ajv, { AnySchema, ErrorObject, Options } from 'ajv';
 import addFormats from "ajv-formats";
+import ajvErrors from "ajv-errors";
 
 let AJV: Ajv | undefined;
 
@@ -13,10 +14,18 @@ const joinPtrs = (...ptrs: string[]): string => {
 
 }
 
-const newAjv = () => {
+const newAjv = (
+    opts?: Options,
+    plugins?: {
+        ajvFormats?: boolean,
+        ajvErrors?: boolean
+    }) => {
 
-    const ajv = new Ajv({ allErrors: true });
-    addFormats(ajv);
+    const ajv = new Ajv(opts || { allErrors: true });
+    if (plugins?.ajvFormats)
+        addFormats(ajv);
+    if (plugins?.ajvErrors)
+        ajvErrors(ajv);
     return ajv;
 
 }
@@ -27,31 +36,45 @@ export interface IAjvSchema extends ISchema {
 
 export interface IAjvError extends IPrtFormError, ErrorObject { };
 
-export const createAjv = (schemas?: IAjvSchema[]) => {
+export const createAjv = (
+    schemas?: IAjvSchema[],
+    opts?: Options,
+    plugins?: {
+        ajvFormats?: boolean,
+        ajvErrors?: boolean
+    },
+    ajv?: Ajv) => {
 
-    AJV = newAjv();
+    AJV = ajv || newAjv(opts, plugins);
     schemas?.forEach(schema => AJV!.addSchema(schema.schema, schema.tag));
 
 }
 
 export const ajvErrorsToPtrErrors = (errors: IAjvError[]) => {
 
-    const res: { [ptr: string]: IAjvError } = {};
+    const res: { [ptr: string]: IAjvError[] } = {};
 
     for (let i = 0; i < errors.length; ++i) {
         const ptr = joinPtrs(...[errors[i].instancePath, errors[i].params?.missingProperty ? errors[i].params?.missingProperty : undefined].filter(a => !!a));
-        res[ptr] = errors[i];
+        res[ptr] = res[ptr] || [];
+        res[ptr].push(errors[i]);
     }
 
     return res;
 
 }
 
-export const useAjvValidator = () =>
+export const useAjvValidator = <T extends { [prop: string]: any } = {}>(
+    opts?: Options,
+    plugins?: {
+        ajvFormats?: boolean,
+        ajvErrors?: boolean
+    }
+) =>
 
-    useMemo<IJsonPrtFormValidator<IAjvSchema, IAjvError>>(() => {
+    useMemo<IJsonPrtFormValidator<T, IAjvSchema, IAjvError>>(() => {
 
-        const ajv = AJV || newAjv();
+        const ajv = AJV || newAjv(opts, plugins);
 
         return {
             addSchema: async schema => {
@@ -69,7 +92,7 @@ export const useAjvValidator = () =>
                 const schema = ajv.getSchema(tag)?.schema;
 
                 if (!schema) {
-                    console.log(new Error(`Schema not found: ${tag}`));
+                    console.log(new Error(`Ajv Schema not found: ${tag}`));
                     return {};
                 }
 
