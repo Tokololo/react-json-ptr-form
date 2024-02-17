@@ -60,7 +60,7 @@ The default value of the form state
       schema: ISchema,
       validator: IJsonPrtFormValidator<T, ISchema, IPrtFormError>
     }
-You provide a schema-validator via a schema and a validator. The schema is specific to the form you are managing and the validator can be a pre-created/long-lived that contains other form schemas or definitions.
+You provide a schema-validator via a schema and a validator. The schema is specific to the form you are managing and the validator can be created just for the form or it can be long-lived beyond the lifetime of the form.
 The schema needs an identifying tag. The rest of the properties are up to the schema validator.
 
     interface ISchema {
@@ -115,35 +115,39 @@ You can reset the form manager by adding a state variable to the deps dependency
 ## useAjvValidator
 react-json-ptr-form comes with one predefined validator based on [ajv](https://ajv.js.org/) that uses [json schema](https://json-schema.org/) validation: 
 
-    const validator = useAjvValidator();
-Optional parameters are:
+    useAjvValidator: <T extends { [prop: string]: any; } = {}>(
+      opts?: Options, 
+      plugins?: {  
+        ajvFormats?: boolean;  
+        ajvErrors?: boolean;  
+    }) => IJsonPrtFormValidator<T, IAjvSchema, IAjvError>
 
- - opts?:  Options  
- - plugins?:
-	 - ajvFormats?:  boolean
-	 - ajvErrors?:   boolean 
+If you do not specify [opts](https://ajv.js.org/options.html) it will default to {  allErrors: true }.   
+The following plugins can be enabled: [ajv-formats](https://ajv.js.org/packages/ajv-formats.html) and [ajv-errors](https://ajv.js.org/packages/ajv-errors.html).
 
-If you do not specify opts it will default to {  allErrors: true }.   
-The plugins are as follows:
+It is used like this in your React functional code:
 
- - [ajv-formats](https://ajv.js.org/packages/ajv-formats.html)
- - [ajv-errors](https://ajv.js.org/packages/ajv-errors.html)
+    const validator = useAjvValidator(undefined, { ajvFormats: true });
 
 This will either create the singleton instance or return it if it has already been created. You can also create it outside of your React functional code which allows you to add [auxiliary schemas](https://cswr.github.io/JsonSchema/spec/definitions_references/), the same options as for useAjvValidator as well as to pass in your own Ajv instance:
+
+    createAjv: (
+      schemas?: IAjvSchema[], 
+      opts?: Options, 
+      plugins?: {  
+        ajvFormats?: boolean;  
+        ajvErrors?: boolean;  
+      }, 
+      ajv?: Ajv) => void
+
+You instantiate it like this:
 
     createAjv(
       [auxSchema1, auxSchema2], 
       undefined, 
       { ajvFormats: true, ajvErrors: true }
     );
-Parameters are as follows:
 
- - schemas?:  IAjvSchema[]
- - opts?:  Options
- - plugins?:
-	 - ajvFormats?:  boolean,
-	 - ajvErrors?:  boolean
- - ajv?:  Ajv
 
 The ability to pass in your own Ajv instance allows you to configure it with additional [plugins](https://ajv.js.org/packages/) beyond the defaults available.  Please note that if you pass in your own instance the above opts and plugins are ignored. 
 
@@ -402,7 +406,7 @@ You are in complete control of how to submit your form. A practical example is a
 	    values: IArticle,  
 	    errors: { [ptr: string]: IAjvError[] }  
 	  ) => {
-	    if (values.title.toLowerCase().startsWith('my') {
+	    if (values.title?.toLowerCase().startsWith('my') {
 	      errors['/title'] = errors['/title'] || [];
 	      errors['/title'].push({
 	        instancePath: "/title",
