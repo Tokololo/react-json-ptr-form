@@ -99,7 +99,12 @@ the error object might look like this:
       values: T,  
       errors: { [path: string]: V[] }
     ) => Promise<{ [path: string]: V[] }>
-The post validator is used for the rare cases in which the schema validator is unable to provide the complex validation needed. It receives the values to be validated and the errors from the schema validator and must return the complete error object. You can also use it as a quick and dirty validator for small forms if you want. The important take-away is that the return error object is indexed by ptr strings exactly in the same format that the schema validator returns it in. Note that if you do not have a schema validator the postValidator will receive an empty error object.
+The post validator is used for:
+
+ - the rare cases in which the schema validator is unable to provide the complex validation needed
+ - as your main validation entry if you do not want to write a custom schema validator
+
+It receives the values to be validated and the errors from the schema validator and must return the complete error object. The important take-away is that the return error object is indexed by ptr strings exactly in the same format that the schema validator returns it in. Note that if you do not have a schema validator the postValidator will receive an empty error object.
 ### options
 Options control the behavior of the form manager. Currenty there are two properties:
 
