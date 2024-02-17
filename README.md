@@ -507,6 +507,8 @@ You are in complete control of how to submit your form. A practical example is a
 	   </Page>);
     };
 # Change Log
+## version 2.0.2
+ - Fix the dirty flag from reporting true whilst the form is initialising
 ## version 2.0.1
  - Fixed bug where in very rare circumstances postValidator errors may be overwritten.
 ## version 2.0.0

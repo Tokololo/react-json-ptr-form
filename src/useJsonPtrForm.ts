@@ -1,7 +1,7 @@
 import { IStoreFlags, Store, strictnessType } from "@tokololo/json-ptr-store";
 import { CleanOptions } from "clean-deep";
-import { DependencyList, useCallback, useEffect, useMemo, useState } from "react";
-import { combineLatest, from, of, switchMap, tap } from "rxjs";
+import { DependencyList, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { BehaviorSubject, combineLatest, filter, from, of, switchMap, tap } from "rxjs";
 import { IPrtFormError, IJsonPrtFormValidator, ISchema } from "./validator";
 import { cloneJson, deepEqual, objectMap, listPointers, removeDeepUndefined, ptrHas, ptrGet } from "./library";
 import { difference, isArray, isPlainObject } from "lodash";
@@ -291,18 +291,27 @@ export const useJsonPtrForm = <
     const [values, setValues] = useState<T>({} as any);
     const [errors, setErrors] = useState<{ [ptr: string]: IPrtFormError[] }>({});
     const [touched, setTouched] = useState<{ [ptr: string]: boolean }>({});
+    const readyRef = useRef<boolean>(false);
+    const readySub = useMemo(() => new BehaviorSubject<{ start: boolean, stop: boolean }>({ start: false, stop: true }), []);
 
     useEffect(() => {
 
         setTouched({});
         setValues({} as any);
         setErrors({});
-        formStore.set([{ ptr: '/', value: cloneJson<Partial<T> | undefined>(defaultValue) }]);
+        readyRef.current = false;
         if (schemaValidator)
-            schemaValidator.validator.addSchema(schemaValidator.schema).catch(err => console.log(err));
+            schemaValidator.validator.addSchema(schemaValidator.schema)
+                .catch(e => console.log(e))
+                .finally(() => readySub.next({ ...readySub.value, start: true }));
+        else
+            readySub.next({ ...readySub.value, start: true });
 
-        const sub = formStore.get<T>('/')
+        const sub = readySub
             .pipe(
+                filter(ready => !!ready.start && !!ready.stop),
+                tap(_ => formStore.set([{ ptr: '/', value: cloneJson<Partial<T> | undefined>(defaultValue) }])),
+                switchMap(_ => formStore.get<T>('/')),
                 tap(_ => {
                     if (options?.async)
                         setRender({});
@@ -321,23 +330,30 @@ export const useJsonPtrForm = <
             .subscribe(([value, errors]) => {
                 if (postValidator)
                     postValidator(value!, errors)
-                        .then(errs => {
-                            setValues({ ...value! });
-                            setErrors(errs);
-                        })
-                        .catch(_ => {
+                        .then(errors => {
+                            readyRef.current = true;
                             setValues({ ...value! });
                             setErrors(errors);
+                        })
+                        .catch(e => {
+                            readyRef.current = true;
+                            setValues({ ...value! });
+                            setErrors(errors);
+                            console.log(e);
                         });
                 else {
+                    readyRef.current = true;
                     setValues({ ...value! });
                     setErrors(errors);
                 }
             });
 
         return () => {
-            schemaValidator?.validator?.removeSchema(schemaValidator.schema.tag).catch(err => console.log(err));
             sub.unsubscribe();
+            readySub.next({ stop: !schemaValidator?.validator, start: false });
+            schemaValidator?.validator?.removeSchema(schemaValidator.schema.tag)
+                .catch(e => console.log(e))
+                .finally(() => readySub.next({ ...readySub.value, stop: true }));
         }
 
     }, [defaultValue, schemaValidator?.schema, schemaValidator?.validator, postValidator, options, ...deps]);
@@ -431,7 +447,7 @@ export const useJsonPtrForm = <
         errorCount: (ptr: string) => errors[ptr]?.length || 0,
         touched: (ptr: string) => !!touched[ptr],
         setTouched: setTouchedFn,
-        dirty: (ptr?: string) => !deepEqual(formStore.slice(ptr || '/'), ptrGet(defaultValue, ptr || '/')),
+        dirty: (ptr?: string) => readyRef.current && !deepEqual(formStore.slice(ptr || '/'), ptrGet(defaultValue, ptr || '/')),
         resetValue,
         rerefValue
     }
