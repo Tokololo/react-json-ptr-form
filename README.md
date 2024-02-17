@@ -502,8 +502,9 @@ You are in complete control of how to submit your form. A practical example is a
 	   </Page>);
     };
 # Change Log
+## version 2.0.1
+ - Fixed bug where in very rare circumstances postValidator errors my be overwritten.
 ## version 2.0.0
-
  - add ajv-errors to package.json
  - removed option fullError
  - altered the schema validator validateSchema to return an array of errors for each error ptr
@@ -517,8 +518,6 @@ You are in complete control of how to submit your form. A practical example is a
  - added property errorCount to JsonPtrFormControl render  properties
  - altered useAjvValidator to set options and plugins
  - altered createAjv to set options, plugins and an instance of Ajv
-
-
 ## version 1.0.8
  - Add rerefValue to JsonPtrFormControl and useJsonPtrForm
 ## version 1.0.7

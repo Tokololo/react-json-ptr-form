@@ -323,7 +323,7 @@ export const useJsonPtrForm = <
                     postValidator(value!, errors)
                         .then(errs => {
                             setValues({ ...value! });
-                            setErrors(Object.assign(errs, errors as any));
+                            setErrors(errs);
                         })
                         .catch(_ => {
                             setValues({ ...value! });
