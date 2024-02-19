@@ -188,16 +188,16 @@ An object literal of all the error objects indexed by ptr.
 Retrieves the total number of errors for a ptr.
 ### touched
     touched: (ptr?: string) => boolean;
-Call this to determine if the form value at a provided ptr (which includes the child values further down the ptr) has been touched. If you leave ptr empty it will give you the touched status of the form as a whole which is equivalent to touched('/'). 
+Call this to determine if the form value at a provided ptr (which includes the child values further down the ptr) has been touched. If you omit ptr it will give you the touched status of the form as a whole which is equivalent to touched('/'). 
 ### setTouched
     setTouched: (ptr?: string) => void
 Call this to set the touch status of a form value at a provided ptr only. If you omit ptr you set the touched flag on every value in your form. Setting the touch status of a ptr does not automatically set the touch status of child ptrs further down, hence setTouched() is not equavalent to setTouched('/').
 ### valid
     valid: (ptr?: string) => boolean
-Call this to determine if the form value at a provided ptr (which includes the child values further down the ptr) is valid. If you leave ptr empty it will give you the valid status of the form as a whole which is equivalent to valid('/'). Do not rely on the valid status of ptrs that your validation does not manage. For instance, you might have a child object for which the validation schema only requires it to be an object. If you request the valid status of a property on this child object it will be meaningless.
+Call this to determine if the form value at a provided ptr (which includes the child values further down the ptr) is valid. If you omit ptr it will give you the valid status of the form as a whole which is equivalent to valid('/'). Do not rely on the valid status of ptrs that your validation does not manage. For instance, you might have a child object for which the validation schema only requires it to be an object. If you request the valid status of a property on this child object it will be meaningless.
 ### dirty
     dirty: (ptr?: string) => boolean;
-Call this to determine if the form value at a provided ptr (which includes the child values further down the ptr) is dirty. If you omit prt you get the dirty state of the form as a whole which is equivalent to dirty('/'). Passing it a ptr to a leaf node in the form state is fast and passing it a prt to a root node of the form state is slower.
+Call this to determine if the form value at a provided ptr (which includes the child values further down the ptr) is dirty. If you omit ptr you get the dirty state of the form as a whole which is equivalent to dirty('/'). Passing it a ptr to a leaf node in the form state is fast and passing it a prt to a root node of the form state is slower.
 ### form
     form: {
       valid: (ptr?: string) => boolean,  
@@ -355,7 +355,7 @@ Parameters are:
  - ptrs: string[]
  - options?: CleanOptions
 
-If you do not provide options is defaults to:
+If you do not provide options it defaults to:
 
     {
       emptyArrays: true,  
