@@ -3,6 +3,7 @@ import { sortAny } from './sortany';
 import { CleanOptions } from "clean-deep";
 import cleanDeep from 'clean-deep';
 import jsonPtr from 'json-pointer';
+import { ptrSet } from "@tokololo/json-ptr-store/dist/library";
 
 const CLEAN_DEEP_OPTS = {
     emptyArrays: true,
@@ -50,6 +51,14 @@ export const deepEqual = (obj1: any, obj2: any) => {
             sortDeep(removeDeepUndefined(obj2, CLEAN_DEEP_OPTS)));
     else
         return isEqual(obj1, obj2);
+
+}
+
+export const cleanDeepPtrs = <T>(source: T, ptrs: string[], options?: CleanOptions): T => {
+
+    const src = cloneJson(source) as T;
+    ptrs.forEach(ptr => ptrSet(src, ptr, removeDeepUndefined(ptrGet(src, ptr), options || CLEAN_DEEP_OPTS)));
+    return src;
 
 }
 

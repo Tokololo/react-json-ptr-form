@@ -24,7 +24,7 @@ interface IJsonPtrFormResult<T, V extends IPrtFormError = IPrtFormError> {
     errors: { [ptr: string]: V[]; };
     error: (ptr: string) => string | undefined;
     errorCount: (ptr: string) => number,
-    touched: (ptr: string) => boolean;
+    touched: (ptr?: string) => boolean;
     setTouched: (ptr?: string) => void;
     dirty: (ptr?: string) => boolean;
 }
@@ -437,7 +437,7 @@ export const useJsonPtrForm = <
     }
 
     const res: any = {
-        valid: (ptr?: string) => ptr ? !errors[ptr] : !Object.keys(errors).length,
+        valid: (ptr?: string) => !errors[ptr || '/'] && !Object.keys(errors).some(tptr => tptr.indexOf(ptr || '/') === 0),
         values,
         value: <T>(ptr: string) => formStore.slice(ptr) as T | undefined,
         setValue,
@@ -445,7 +445,7 @@ export const useJsonPtrForm = <
         errors,
         error: (ptr: string) => errors[ptr]?.[0]?.message,
         errorCount: (ptr: string) => errors[ptr]?.length || 0,
-        touched: (ptr: string) => !!touched[ptr],
+        touched: (ptr?: string) => !!touched[ptr || '/'] || Object.keys(touched).some(tptr => tptr.indexOf(ptr || '/') === 0),
         setTouched: setTouchedFn,
         dirty: (ptr?: string) => readyRef.current && !deepEqual(formStore.slice(ptr || '/'), ptrGet(defaultValue, ptr || '/')),
         resetValue,
